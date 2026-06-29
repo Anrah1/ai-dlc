@@ -1,0 +1,293 @@
+@startuml
+<style>
+activityDiagram {
+  swimlane {
+    BorderColor #D8D8D8
+    BorderThickness 1
+  }
+}
+</style>
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 11
+skinparam ArrowColor #534AB7
+skinparam ActivityBackgroundColor #EEEDFE
+skinparam ActivityBorderColor #7F77DD
+skinparam ActivityFontColor #3C3489
+skinparam ActivityDiamondBackgroundColor #FAEEDA
+skinparam ActivityDiamondBorderColor #BA7517
+skinparam NoteBackgroundColor #F1EFE8
+skinparam NoteBorderColor #B4B2A9
+skinparam NoteFontColor #444441
+skinparam NoteFontSize 10
+skinparam PartitionBorderColor #EFEFEF
+skinparam PartitionBorderThickness 1
+skinparam PartitionBackgroundColor #FAFAFA
+skinparam swimlaneBorderColor #D8D8D8
+skinparam swimlaneBorderThickness 1
+skinparam swimlaneWidth 200
+skinparam roundCorner 16
+skinparam ActivityBorderThickness 1
+skinparam ArrowThickness 1.2
+skinparam ActivityBarColor #C8C4F5
+
+|Аналитик|
+start
+if (Новое приложение?) then (да)
+  :Сбор требований;
+  note right
+    Выявляем требования
+    (интервью, мозговой штурм, воркшоп)
+    ----
+    Создаём протокол встречи
+    **[интент]** intents/INTENT/application-layout/meetings/YYYY-MM-DD-topic.md
+  end note
+
+  #E6F6EE:AI: Набросок приложения;
+  note right
+    //скил: sketch-layout//
+    AI читает протокол → рисует основные экраны и навигацию
+    **[интент]** intents/INTENT/application-layout/application-layout.pen
+    ----
+    читает: вся команда
+  end note
+
+  #E6F6EE:AI: декомпозиция интента на фичи;
+  note right
+    //скил: decompose-intent//
+    AI читает application-layout.pen + meetings/
+    → предлагает список фич с описанием
+    и примерным списком экранов
+  end note
+
+  :Утверждение фич;
+  note right
+    Аналитик утверждает список фич
+    ----
+    Создаётся структура папок:
+    **[интент]** intents/INTENT/FEAT/FEAT-NAME-001/meetings/
+  end note
+
+  #E6F6EE:AI: Отрисовка экрана;
+  note right
+    //скил: pen-new// → заглушка Default-экрана
+    //скил: pen-edit// → отрисовка полного экрана
+    **[история]** intents/INTENT/FEAT/FEAT-NAME-001/FEAT-NAME-001.pen
+  end note
+
+else (нет)
+  if (Новая фича?) then (да)
+    :Сбор требований по фиче;
+    note right
+      Выявляем требования к фиче
+      (интервью, обсуждение, воркшоп)
+      ----
+      Создаём протокол встречи
+      **[история]** intents/INTENT/FEAT/FEAT-NAME-001/meetings/YYYY-MM-DD-topic.md
+    end note
+
+  #E6F6EE:AI: Отрисовка экрана;
+    note right
+      //скил: pen-new// → заглушка Default-экрана
+      //скил: pen-edit// → отрисовка полного экрана
+      **[история]** intents/INTENT/FEAT/FEAT-NAME-001/FEAT-NAME-001.pen
+    end note
+
+  else (Правки в существующую)
+    #E6F6EE:AI:Доработка экрана;
+    note right
+      //скил: pen-edit// → правки в существующем .pen файле
+      **[история]** intents/INTENT/FEAT/FEAT-NAME-001/FEAT-NAME-001.pen
+    end note
+  endif
+endif
+
+#E6F6EE:AI:Описание User Story и Use Case;
+note right
+  //скил: write-story//
+  Описываем сторю и кейсы для экрана
+  **[история]** intents/INTENT/FEAT/FEAT-NAME-001/
+end note
+
+:Утверждение у PO;
+note right
+  Передаём экран и описание на проверку
+end note
+
+if (PO запросил правки?) then (да)
+  #E6F6EE:AI:Внесение правок;
+  note right
+    //скил: pen-edit//
+  end note
+  :Утверждение у PO;
+else (утверждено)
+endif
+
+#E6F6EE:AI: Написание requirements.md;
+note right
+  //скил: write-requirements//
+  AI читает US и UC из .pen → создаёт requirements
+  ----
+  Новая фича / приложение:
+  **[история]** v1-requements.md
+  Доработка существующей фичи:
+  AI спрашивает версию сборки →
+  **[история]** v{сборка}-requements.md
+  Содержит только изменения относительно предыдущих версий
+  ----
+  читает: вся команда
+  читает AI: для генерации тест-кейсов
+end note
+
+#E6F6EE:AI: генерация тест-кейсов;
+note right
+  //скил: testing-checklists//
+  **[тест]** testing/android/vocaberry/checklists/FEAT-NAME-001/
+  **[тест]** testing/ios/vocaberry/checklists/FEAT-NAME-001/
+  пример: testing/android/vocaberry/checklists/VB-LNR-SETTING-SONG-RANGE-004
+end note
+
+fork
+  |Разработчик|
+  #E6F6EE:AI: Разбор требований;
+  note right
+    //скил: analyze-requirements//
+    AI читает requirements.md + текущую архитектуру →
+    • вопросы по фиче (неясности, допущения)
+    • верхнеуровневое размещение фичи в архитектуре
+    • новые компоненты vs существующие
+    • возможные ADR
+    • нехватка данных / открытые решения
+    ----
+    **[история]** intents/INTENT/FEAT/FEAT-NAME-001/requirements-analysis.md
+    ----
+    читает: команда разработки
+  end note
+  :Разбивка на work items;
+  note right
+    **[история]** work-items.md
+    ----
+    читает: команда, агенты
+  end note
+  #E6F6EE:AI: декомпозиция + план выполнения агентами;
+  note right
+    **[история]** work-items.md (план агентов)
+  end note
+fork again
+  |Тестировщик|
+  :Подготовка к тестированию;
+  note right
+    Получает от аналитика:
+    **[история]** v1-requements.md / v{сборка}-requements.md
+    **[история]** FEAT-NAME-001.pen
+    **[тест]** checklists/FEAT-NAME-001/
+    ----
+    //скил: testing-checklists//
+    Дорабатывает или описывает чек-листы
+  end note
+end fork
+
+|Разработчик|
+if (Проблема в требованиях?) then (да)
+  |Аналитик|
+  :Уточнение требований;
+  note right
+    //скил: write-requirements//
+    **[история]** v{сборка}-requements.md
+  end note
+  |Разработчик|
+else (нет)
+endif
+
+:Написание кода;
+note right
+  **[история]** Pull Request
+  ----
+  читает: команда (ревью кода)
+  читает AI: work-items.md, openapi.yaml
+end note
+#E6F6EE:AI: ревью кода, генерация тестов;
+note right
+  **[история]** reports/pr-review.md
+  **[история]** src/test/ (unit-тесты, AI-драфт)
+end note
+
+:Ревью PR;
+note right
+  **[история]** Pull Request (approved)
+  ----
+  читает: разработчик (ревьюер)
+end note
+
+|Тестировщик|
+:Тестирование;
+note right
+  Тестирует по чек-листам и .pen файлу
+  **[тест]** testing/android/vocaberry/checklists/FEAT-NAME-001/
+  **[тест]** testing/ios/vocaberry/checklists/FEAT-NAME-001/
+  ----
+  Баги заводятся отдельно по мере обнаружения
+end note
+
+if (Замечания?) then (да)
+  :Фиксация замечаний;
+  note right
+    //скил: write-requirements//
+    **[история]** v{сборка}-requements.md
+    Только изменения / замечания
+  end note
+  |Разработчик|
+  :Фикс багов;
+  note right
+    **[история]** Pull Request (fix)
+  end note
+  |Тестировщик|
+  :Регрессия;
+else (нет)
+endif
+
+|Аналитик|
+:Приёмка сборки;
+note right
+  Аналитик проверяет по .pen файлу и requirements
+end note
+
+if (Замечания у аналитика?) then (да)
+  :Фиксация замечаний;
+  note right
+    //скил: write-requirements//
+    **[история]** v{следующая сборка}-requements.md
+  end note
+  |Разработчик|
+  :Фикс замечаний;
+  note right
+    **[история]** Pull Request (fix)
+  end note
+  |Аналитик|
+else (нет)
+endif
+
+:Передача PO на приёмку;
+note right
+  PO проверяет сборку
+  При замечаниях аналитик создаёт:
+  **[история]** v{следующая сборка}-requements.md
+end note
+
+if (PO принял?) then (да)
+  :Релиз;
+else (замечания)
+  :Фиксация замечаний PO;
+  note right
+    //скил: write-requirements//
+    **[история]** v{следующая сборка}-requements.md
+  end note
+  |Разработчик|
+  :Фикс замечаний PO;
+  note right
+    **[история]** Pull Request (fix)
+  end note
+  |Аналитик|
+endif
+
+stop
+@enduml
